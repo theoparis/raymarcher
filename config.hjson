@@ -1,0 +1,14 @@
+{
+	"glowAmount": 0.5,
+	"steps": 32,
+	"objectColor": [
+		0.0,
+		0.0,
+		0.9,
+	],
+	"glowColor": [
+		1.0,
+		0.0,
+		1.0,
+	]
+}

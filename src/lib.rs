@@ -4,6 +4,7 @@ use nalgebra::Vector3;
 
 pub mod camera;
 pub mod ray;
+pub mod scene;
 pub mod shape;
 
 pub fn max(v: Vector3<f32>, other: Vector3<f32>) -> Vector3<f32> {
