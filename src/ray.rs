@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::shape::Shape;
 use nalgebra::{Vector2, Vector3};
 use serde::{Deserialize, Serialize};
@@ -20,14 +22,14 @@ pub struct MarchSettings {
 	pub max_dist: f32,
 	pub min_dist: f32,
 	pub steps: i32,
-	pub shape: Box<dyn Shape + Send + Sync>,
+	pub shape: Arc<dyn Shape + Send + Sync>,
 	pub light_position: Vector3<f32>,
 }
 
 #[allow(clippy::borrowed_box)]
 pub fn calculate_normal(
 	pos: Vector3<f32>,
-	shape: &Box<dyn Shape + Send + Sync>,
+	shape: &Arc<dyn Shape + Send + Sync>,
 ) -> Vector3<f32> {
 	let e = Vector2::new(1.0, -1.0) * 0.0005; // epsilon
 

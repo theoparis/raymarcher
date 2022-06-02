@@ -1,6 +1,13 @@
 {
 	"glowAmount": 0.5,
 	"steps": 32,
+	"imageWidth": 1920,
+	"imageHeight": 1080,
+	"cameraPosition": [
+		0.0,
+		0.0,
+		-3.0
+	],
 	"objectColor": [
 		0.0,
 		0.0,

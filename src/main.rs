@@ -1,5 +1,6 @@
 use std::path::Path;
-use std::time::Instant;
+use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 //use adw::{Application, ApplicationWindow};
 //use gtk4::gdk_pixbuf::Pixbuf;
@@ -20,6 +21,9 @@ pub struct Config {
 	pub object_color: Vector3<f32>,
 	pub glow_color: Vector3<f32>,
 	pub steps: i32,
+	pub image_width: i32,
+    pub image_height: i32,
+	pub camera_position: Vector3<f32>,
 }
 
 impl Default for Config {
@@ -29,64 +33,39 @@ impl Default for Config {
 			glow_color: Vector3::new(1.0, 0.0, 1.0),
 			object_color: Vector3::new(0.0, 0.0, 0.9),
 			steps: 32,
+			image_width: 1280,
+            image_height: 720,
+			camera_position: Vector3::new(0.0, 0.0, -15.0),
 		}
 	}
 }
 
-fn main() {
-	//let app = Application::builder()
-	//.application_id("com.theoparis.rayrus")
-	//.build();
-
-	//app.connect_activate(build_ui);
-
-	//app.run();
-	//}
-
-	//fn build_ui(app: &Application) {
-	let aspect_ratio = 16.0 / 9.0;
-	let image_width = 1920;
-	let image_height = image_width / aspect_ratio as i32;
-	let cam_pos = Vector3::new(0.0, 0.0, -15.0);
-
-	let config: Config = nu_json::from_str(
-		&std::fs::read_to_string("config.hjson")
-			.expect("Failed to read config.hjson"),
-	)
-	.expect("Failed to parse config");
-
+fn render(config: &Config, scene: Arc<Scene>) -> (Vec<u8>, Duration) {
 	let start = Instant::now();
-
-	let mut render_data = vec![0; (image_width * image_height) as usize * 4];
+	let mut render_data =
+		vec![0; (config.image_width * config.image_height) as usize * 4];
 
 	render_data
 		.par_chunks_mut(4)
 		.enumerate()
-		.for_each(|(i, pixel)| {
-			let x = i as i32 % image_width;
-			let y = i as i32 / image_width;
+		.zip(
+			vec![0; (config.image_width * config.image_height) as usize * 4]
+				.par_chunks_mut(4)
+				.map(|_| scene.clone()),
+		)
+		.for_each(|((i, pixel), scene)| {
+			let x = i as i32 % config.image_width;
+			let y = i as i32 / config.image_width;
 			let uv = Vector2::new(
-				x as f32 - 0.5 * image_width as f32,
-				y as f32 - 0.5 * image_height as f32,
+				x as f32 - 0.5 * config.image_width as f32,
+				y as f32 - 0.5 * config.image_height as f32,
 			);
 			let ray_dir =
-				Vector3::new(uv.x as f32, uv.y as f32, image_height as f32)
+				Vector3::new(uv.x as f32, uv.y as f32,config.image_height as f32)
 					.normalize();
 
-			let mut scene = Scene::default();
-			scene.add(Box::new(Sphere {
-				center: Vector3::new(0.0, 0.0, 0.0),
-				radius: 0.5,
-			}));
-			//scene.add(Box::new(Cube {
-			//center: Vector3::new(0.0, 3.0, 0.0),
-			//size: Vector3::new(0.6, 0.6, 0.5),
-			//}));
-
-			let scene = Box::new(scene);
-
 			let march_settings = MarchSettings {
-				origin: cam_pos,
+				origin: config.camera_position,
 				direction: ray_dir,
 				max_dist: 1000.0,
 				min_dist: 0.0001,
@@ -130,43 +109,34 @@ fn main() {
 		});
 
 	let duration = start.elapsed();
+
+	(render_data, duration)
+}
+
+fn main() {
+	let config: Config = nu_json::from_str(
+		&std::fs::read_to_string("config.hjson")
+			.expect("Failed to read config.hjson"),
+	)
+	.expect("Failed to parse config");
+
+	let mut scene = Scene::default();
+
+	scene.add(Box::new(Sphere {
+		center: Vector3::new(0.0, 0.0, 0.0),
+		radius: 0.5,
+	}));
+
+	let (render_data, duration) =
+		render(&config, Arc::new(scene));
 	println!("Time elapsed: {:?}", duration);
 
 	image::save_buffer(
 		&Path::new("image.png"),
 		&render_data,
-		image_width as u32,
-		image_height as u32,
+		config.image_width as u32,
+		config.image_height as u32,
 		image::ColorType::Rgba8,
 	)
-	.unwrap();
-
-	//let pixbuf = Pixbuf::from_bytes(
-	//&Bytes::from(&render_data),
-	//gtk4::gdk_pixbuf::Colorspace::Rgb,
-	//true,
-	//8,
-	//image_width,
-	//image_height,
-	//4 * image_width,
-	//);
-	//let picture = Picture::for_pixbuf(&pixbuf);
-	//picture.set_keep_aspect_ratio(true);
-	//picture.set_can_shrink(false);
-	//picture.set_hexpand(false);
-	//picture.set_vexpand(false);
-	//picture.set_halign(gtk4::Align::Fill);
-	//picture.set_valign(gtk4::Align::Fill);
-
-	// Present window
-	//let content = Box::new(gtk4::Orientation::Vertical, 0);
-	//content.append(&picture);
-
-	//let window = ApplicationWindow::builder()
-	//.application(app)
-	//.title("Rayrus")
-	//.content(&content)
-	//.build();
-
-	//window.present();
+	.expect("Failed to save image");
 }
