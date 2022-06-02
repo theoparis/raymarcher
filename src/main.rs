@@ -22,7 +22,7 @@ pub struct Config {
 	pub glow_color: Vector3<f32>,
 	pub steps: i32,
 	pub image_width: i32,
-    pub image_height: i32,
+	pub image_height: i32,
 	pub camera_position: Vector3<f32>,
 }
 
@@ -34,7 +34,7 @@ impl Default for Config {
 			object_color: Vector3::new(0.0, 0.0, 0.9),
 			steps: 32,
 			image_width: 1280,
-            image_height: 720,
+			image_height: 720,
 			camera_position: Vector3::new(0.0, 0.0, -15.0),
 		}
 	}
@@ -60,9 +60,12 @@ fn render(config: &Config, scene: Arc<Scene>) -> (Vec<u8>, Duration) {
 				x as f32 - 0.5 * config.image_width as f32,
 				y as f32 - 0.5 * config.image_height as f32,
 			);
-			let ray_dir =
-				Vector3::new(uv.x as f32, uv.y as f32,config.image_height as f32)
-					.normalize();
+			let ray_dir = Vector3::new(
+				uv.x as f32,
+				uv.y as f32,
+				config.image_height as f32,
+			)
+			.normalize();
 
 			let march_settings = MarchSettings {
 				origin: config.camera_position,
@@ -127,8 +130,7 @@ fn main() {
 		radius: 0.5,
 	}));
 
-	let (render_data, duration) =
-		render(&config, Arc::new(scene));
+	let (render_data, duration) = render(&config, Arc::new(scene));
 	println!("Time elapsed: {:?}", duration);
 
 	image::save_buffer(
