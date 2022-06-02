@@ -31,6 +31,6 @@ impl Shape for Scene {
 			.par_iter()
 			.map(|obj| obj.get_signed_distance(pos))
 			.reduce_with(|a, b| (self.combinator)(a, b))
-			.unwrap()
+			.unwrap_or_default()
 	}
 }

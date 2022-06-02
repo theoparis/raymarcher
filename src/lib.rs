@@ -4,6 +4,7 @@ use nalgebra::Vector3;
 
 pub mod camera;
 pub mod ray;
+pub mod renderer;
 pub mod scene;
 pub mod shape;
 
