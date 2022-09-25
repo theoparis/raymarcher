@@ -7,9 +7,9 @@ edition = "2021"
 
 [dependencies]
 #gtk4 = "0.4.7"
-image = "0.24.2"
+image = "0.24.4"
 #libadwaita = "0.1.1"
-nalgebra = { version = "0.31.0", features = ["serde-serialize", "rand"] }
-nu-json = "0.63.0"
+nalgebra = { version = "0.31.1", features = ["serde-serialize", "rand"] }
+nu-json = "0.68.1"
 rayon = "1.5.3"
-serde = { version = "1.0.137", features = ["derive"] }
+serde = { version = "1.0.145", features = ["derive"] }
